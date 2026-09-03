@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랜덤 비밀 게임</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7f6fb;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}
+button,input,textarea{font:inherit}
+.app{min-height:100vh;padding:28px 15px 60px}
+.container{max-width:760px;margin:auto}
+.header{text-align:center;margin-bottom:25px}
+.logo{width:64px;height:64px;margin:0 auto 14px;border-radius:21px;background:linear-gradient(135deg,#7657ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 12px 30px rgba(118,87,255,.22)}
+h1{margin:0;font-size:28px;font-weight:800}
+.header p{margin:8px 0 0;color:#8b8b94;font-size:13px}
+.card{background:#fff;border:1px solid #ecebf1;border-radius:23px;padding:23px;margin-bottom:15px;box-shadow:0 7px 28px rgba(0,0,0,.045)}
+.title{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.step{width:30px;height:30px;border-radius:10px;background:#f0edff;color:#7054ed;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none}
+.title h2{margin:0;font-size:17px}
+.help{margin:0 0 14px 40px;color:#999;font-size:12px;line-height:1.6}
+textarea{width:100%;min-height:130px;resize:vertical;padding:14px;border:1px solid #e3e2e9;border-radius:15px;background:#fafafa;outline:none;font-size:15px;line-height:1.65}
+textarea:focus,input:focus{background:#fff;border-color:#8c76ef;box-shadow:0 0 0 4px rgba(118,87,255,.08)}
+.main{width:100%;border:0;border-radius:16px;padding:17px;color:#fff;background:linear-gradient(135deg,#7052f4,#967bff);font-weight:800;cursor:pointer;box-shadow:0 10px 25px rgba(112,82,244,.24)}
+.sub{width:100%;border:0;border-radius:14px;padding:14px;background:#f0eff4;color:#555;font-weight:700;cursor:pointer;margin-top:10px}
+.addBtn{width:100%;border:1.5px dashed #bcb2ee;border-radius:16px;padding:15px;background:#faf9ff;color:#7054ed;font-weight:800;cursor:pointer;margin-bottom:15px}
+.addBtn:hover{background:#f5f2ff}
+#resultPage,#secretPage{display:none}
+.success{text-align:center;margin-bottom:22px}
+.successIcon{width:54px;height:54px;margin:0 auto 12px;border-radius:50%;background:#eaf9f0;color:#29a866;display:flex;align-items:center;justify-content:center;font-size:25px}
+.success h2{margin:0;font-size:21px}
+.success p{color:#999;font-size:12px}
+.person{padding:16px;margin-bottom:10px;border-radius:16px;background:#fafafd;border:1px solid #ededf2}
+.personName{font-weight:800;margin-bottom:9px}
+.linkRow{display:flex;gap:7px}
+.linkInput{flex:1;min-width:0;border:1px solid #e1e0e7;border-radius:10px;padding:10px;background:#fff;color:#777;font-size:10px}
+.copy{border:0;border-radius:10px;padding:0 13px;background:#222;color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.notice{margin-top:16px;padding:14px;border-radius:13px;background:#fff8e8;color:#80651e;font-size:12px;line-height:1.6}
+.secret{text-align:center}
+.lock{width:65px;height:65px;margin:0 auto 16px;border-radius:21px;background:#f0edff;display:flex;align-items:center;justify-content:center;font-size:28px}
+.secretName{font-size:24px;font-weight:800}
+.secretSub{color:#999;font-size:13px;margin:7px 0 23px}
+.resultBox{padding:20px;border-radius:20px;margin-bottom:12px;background:linear-gradient(135deg,#f5f2ff,#fbfaff);border:1px solid #e6e0ff}
+.label{color:#8875cf;font-size:11px;font-weight:800;margin-bottom:9px}
+.value{color:#392878;font-size:21px;font-weight:800;line-height:1.45;word-break:keep-all}
+.full{display:none;margin-top:22px}
+.fullItem{padding:16px;margin-bottom:9px;border-radius:15px;background:#fafafa;border:1px solid #eee}
+.fullItem strong{display:block;margin-bottom:7px}
+.fullLine{font-size:13px;color:#666;line-height:1.8}
+.fullLine b{color:#333}
+hr{border:0;border-top:1px solid #eee;margin:22px 0}
+.smallBtn{border:0;background:none;color:#7657ff;font-size:12px;font-weight:700;cursor:pointer;margin-top:12px}
+.fieldCard{position:relative}
+.fieldTop{display:flex;gap:9px;align-items:center;margin-bottom:12px}
+.fieldName{flex:1;min-width:0;padding:12px 13px;border:1px solid #e3e2e9;border-radius:12px;background:#fafafa;outline:none;font-size:14px;font-weight:700}
+.removeBtn{flex:none;border:0;border-radius:11px;padding:10px 12px;background:#fff0f1;color:#d64d5d;font-size:12px;font-weight:800;cursor:pointer}
+.fieldOptions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:11px 2px 0}
+.check{display:flex;align-items:center;gap:7px;color:#666;font-size:12px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:#7657ff}
+.usePeople{border:0;background:#f0edff;color:#7054ed;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer}
+.count{font-size:11px;color:#aaa;margin-top:8px;text-align:right}
+.badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#f0edff;color:#7054ed;font-size:10px;font-weight:800;margin-left:7px}
+@media(max-width:500px){
+  h1{font-size:25px}.card{padding:19px}.linkInput{font-size:9px}.copy{padding:0 11px}
+  .fieldTop{align-items:stretch}.removeBtn{padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="app"><div class="container">
+
+<section id="hostPage">
+  <div class="header">
+    <div class="logo">🎲</div>
+    <h1>랜덤 비밀 게임</h1>
+    <p>마니또, 랜덤 잠옷, 미션까지 원하는 만큼 랜덤 배정!</p>
+  </div>
+
+  <div class="card">
+    <div class="title"><div class="step">1</div><h2>참가자 이름</h2></div>
+    <p class="help">한 줄에 한 명씩 입력하세요. 각 참가자에게 자기 결과만 볼 수 있는 비밀 링크가 만들어집니다.</p>
+    <textarea id="participants" placeholder="김민지&#10;박서준&#10;이수진&#10;최현우"></textarea>
+    <div id="peopleCount" class="count">0명</div>
+  </div>
+
+  <div class="title" style="margin:22px 0 10px 2px">
+    <div class="step">2</div>
+    <h2>랜덤 배정 칸</h2>
+  </div>
+  <p class="help" style="margin-left:42px">칸 이름과 후보를 자유롭게 입력하세요. 칸은 원하는 만큼 추가할 수 있습니다.</p>
+
+  <div id="fields"></div>
+
+  <button class="addBtn" onclick="addField()">＋ 랜덤 배정 칸 추가하기</button>
+
+  <button class="main" onclick="createGame()">✨ 랜덤 결과 만들기</button>
+
+  <div class="notice">
+    💡 예시<br>
+    • 1칸: <b>미션</b><br>
+    • 2칸: <b>마니또 + 미션</b><br>
+    • 3칸: <b>마니또 + 랜덤 잠옷 + 미션</b><br>
+    칸 이름은 원하는 말로 바꿀 수 있어요.
+  </div>
+</section>
+
+<section id="resultPage">
+  <div class="header">
+    <div class="logo">🔐</div>
+    <h1>랜덤 배정 완료!</h1>
+    <p>각 참가자에게 자기 링크만 보내주세요.</p>
+  </div>
+
+  <div class="card">
+    <div class="success">
+      <div class="successIcon">✓</div>
+      <h2>참가자별 비밀 링크</h2>
+      <p>링크에는 해당 참가자의 결과만 들어 있습니다.</p>
+    </div>
+
+    <div id="links"></div>
+
+    <div class="notice">
+      🔒 생성 직후에는 전체 결과가 숨겨져 있습니다.<br>
+      각 참가자의 <b>복사</b> 버튼을 눌러 카카오톡으로 보내주세요.
+    </div>
+
+    <button class="sub" onclick="toggleAll()">👀 방장 전체 결과 확인</button>
+    <div id="full" class="full">
+      <hr>
+      <h3>전체 결과</h3>
+      <div id="allResults"></div>
+    </div>
+
+    <button class="smallBtn" onclick="restart()">새 랜덤 게임 만들기</button>
+  </div>
+</section>
+
+<section id="secretPage">
+  <div class="header">
+    <div class="logo">🤫</div>
+    <h1>나의 랜덤 결과</h1>
+    <p>다른 사람에게 보여주지 마세요!</p>
+  </div>
+
+  <div class="card secret">
+    <div class="lock">🔒</div>
+    <div id="secretName" class="secretName"></div>
+    <div class="secretSub">당신에게 배정된 비밀 결과입니다.</div>
+    <div id="secretResults"></div>
+
+    <div class="notice" style="text-align:left">
+      🤫 <b>쉿!</b><br>
+      배정된 결과는 게임 전까지 비밀로 간직해주세요.
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script>
+let fieldCounter=0;
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function escapeHtml(s){
+  const d=document.createElement("div");
+  d.textContent=s;
+  return d.innerHTML;
+}
+
+function getLines(value){
+  return value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+}
+
+function encodeResult(obj){
+  const json=JSON.stringify(obj);
+  const bytes=new TextEncoder().encode(json);
+  let binary="";
+  for(const b of bytes) binary+=String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
+}
+
+function decodeResult(str){
+  try{
+    str=str.replace(/-/g,"+").replace(/_/g,"/");
+    while(str.length%4) str+="=";
+    const binary=atob(str);
+    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }catch(e){
+    return null;
+  }
+}
+
+async function copyLink(link, name){
+  try{
+    await navigator.clipboard.writeText(link);
+    alert(name+"님의 비밀 링크가 복사됐어요!\n카카오톡으로 보내주세요.");
+  }catch(e){
+    prompt("아래 링크를 복사해주세요.",link);
+  }
+}
+
+function updatePeopleCount(){
+  const n=getLines(document.getElementById("participants").value).length;
+  document.getElementById("peopleCount").textContent=n+"명";
+}
+
+function addField(name="", values="", noSelf=false){
+  fieldCounter++;
+  const id=fieldCounter;
+  const wrap=document.createElement("div");
+  wrap.className="card fieldCard";
+  wrap.dataset.fieldId=id;
+
+  wrap.innerHTML=`
+    <div class="fieldTop">
+      <input class="fieldName" maxlength="30" placeholder="칸 이름 (예: 마니또, 랜덤 잠옷, 미션)" value="${escapeHtml(name)}">
+      <button class="removeBtn" type="button">삭제</button>
+    </div>
+    <textarea class="fieldValues" placeholder="랜덤으로 배정할 내용을 한 줄에 하나씩 입력하세요.">${escapeHtml(values)}</textarea>
+    <div class="fieldOptions">
+      <label class="check">
+        <input class="noSelf" type="checkbox" ${noSelf ? "checked" : ""}>
+        참가자 이름과 같은 값은 자기 자신에게 배정하지 않기
+      </label>
+      <button class="usePeople" type="button">참가자 이름 불러오기</button>
+    </div>
+    <div class="count fieldCount">0개</div>
+  `;
+
+  wrap.querySelector(".removeBtn").addEventListener("click",()=>{
+    const cards=document.querySelectorAll(".fieldCard");
+    if(cards.length<=1){
+      alert("랜덤 배정 칸은 최소 1개 필요해요.");
+      return;
+    }
+    wrap.remove();
+    renumberFields();
+  });
+
+  wrap.querySelector(".usePeople").addEventListener("click",()=>{
+    const people=getLines(document.getElementById("participants").value);
+    if(!people.length){
+      alert("먼저 참가자 이름을 입력해주세요.");
+      return;
+    }
+    wrap.querySelector(".fieldValues").value=people.join("\n");
+    wrap.querySelector(".noSelf").checked=true;
+    updateFieldCount(wrap);
+  });
+
+  wrap.querySelector(".fieldValues").addEventListener("input",()=>updateFieldCount(wrap));
+
+  document.getElementById("fields").appendChild(wrap);
+  updateFieldCount(wrap);
+  renumberFields();
+}
+
+function updateFieldCount(card){
+  const n=getLines(card.querySelector(".fieldValues").value).length;
+  card.querySelector(".fieldCount").textContent=n+"개 후보";
+}
+
+function renumberFields(){
+  document.querySelectorAll(".fieldCard").forEach((card,i)=>{
+    const input=card.querySelector(".fieldName");
+    if(!input.value && i===0) input.placeholder="칸 이름 (예: 마니또)";
+  });
+}
+
+function assignField(people, candidates, noSelf){
+  // 후보가 참가자 수 이상이어야 1명당 하나씩 중복 없이 배정 가능
+  if(candidates.length < people.length) return null;
+
+  // 자기 자신 제외가 아니면 그냥 섞어서 앞에서부터 배정
+  if(!noSelf){
+    const shuffled=shuffle([...candidates]);
+    return people.map((p,i)=>shuffled[i]);
+  }
+
+  // 자기 자신 제외 옵션: 여러 번 섞어 유효한 조합을 찾음
+  for(let attempt=0;attempt<1000;attempt++){
+    const shuffled=shuffle([...candidates]);
+    const chosen=shuffled.slice(0,people.length);
+    if(people.every((p,i)=>chosen[i]!==p)){
+      return chosen;
+    }
+  }
+
+  // 참가자 목록과 후보 목록이 동일한 경우에는 완전 순환으로 확실하게 처리
+  if(candidates.length===people.length &&
+     [...candidates].sort().join("\u0000")===[...people].sort().join("\u0000")){
+    const order=shuffle([...people]);
+    const map={};
+    for(let i=0;i<order.length;i++){
+      map[order[i]]=order[(i+1)%order.length];
+    }
+    return people.map(p=>map[p]);
+  }
+
+  return null;
+}
+
+function createGame(){
+  const people=getLines(document.getElementById("participants").value);
+
+  if(people.length<2){
+    alert("참가자는 최소 2명 이상 입력해주세요.");
+    return;
+  }
+
+  if(new Set(people).size!==people.length){
+    alert("참가자 이름이 중복되어 있습니다.");
+    return;
+  }
+
+  const cards=[...document.querySelectorAll(".fieldCard")];
+  if(!cards.length){
+    alert("랜덤 배정 칸을 최소 1개 추가해주세요.");
+    return;
+  }
+
+  const fields=[];
+  const usedNames=new Set();
+
+  for(let i=0;i<cards.length;i++){
+    const card=cards[i];
+    const name=card.querySelector(".fieldName").value.trim();
+    const values=getLines(card.querySelector(".fieldValues").value);
+    const noSelf=card.querySelector(".noSelf").checked;
+
+    if(!name){
+      alert((i+1)+"번째 칸의 이름을 입력해주세요.\n예: 마니또 / 랜덤 잠옷 / 미션");
+      return;
+    }
+
+    if(usedNames.has(name)){
+      alert("칸 이름이 중복되어 있어요: "+name);
+      return;
+    }
+    usedNames.add(name);
+
+    if(values.length<people.length){
+      alert("["+name+"] 후보를 참가자 수 이상 입력해주세요.\n참가자: "+people.length+"명 / 후보: "+values.length+"개");
+      return;
+    }
+
+    if(new Set(values).size!==values.length){
+      alert("["+name+"] 후보에 중복된 내용이 있어요.\n중복 없이 입력해주세요.");
+      return;
+    }
+
+    fields.push({name,values,noSelf});
+  }
+
+  const assigned=fields.map(field=>{
+    const values=assignField(people,field.values,field.noSelf);
+    if(!values){
+      alert("["+field.name+"]에서 자기 자신 제외 조건으로 배정할 수 없어요.\n후보 내용을 확인하거나 '자기 자신에게 배정하지 않기'를 꺼주세요.");
+      throw new Error("assignment failed");
+    }
+    return values;
+  });
+
+  const results=people.map((name,i)=>({
+    name,
+    items:fields.map((field,fIndex)=>({
+      label:field.name,
+      value:assigned[fIndex][i]
+    }))
+  }));
+
+  const gameId=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
+  localStorage.setItem("random-secret-host-"+gameId,JSON.stringify(results));
+
+  const links=document.getElementById("links");
+  links.innerHTML="";
+
+  results.forEach(result=>{
+    const personal={n:result.name,items:result.items};
+    const encoded=encodeResult(personal);
+    const base=location.href.split("#")[0];
+    const link=base+"#r="+encoded;
+
+    const div=document.createElement("div");
+    div.className="person";
+    div.innerHTML=`
+      <div class="personName">👤 ${escapeHtml(result.name)}</div>
+      <div class="linkRow">
+        <input class="linkInput" value="${escapeHtml(link)}" readonly>
+        <button class="copy">복사</button>
+      </div>
+    `;
+
+    div.querySelector(".copy").addEventListener("click",()=>copyLink(link,result.name));
+    links.appendChild(div);
+  });
+
+  const all=document.getElementById("allResults");
+  all.innerHTML="";
+
+  results.forEach(r=>{
+    const div=document.createElement("div");
+    div.className="fullItem";
+    const lines=r.items.map(item=>
+      `<div class="fullLine">🎲 ${escapeHtml(item.label)}: <b>${escapeHtml(item.value)}</b></div>`
+    ).join("");
+    div.innerHTML=`<strong>👤 ${escapeHtml(r.name)}</strong>${lines}`;
+    all.appendChild(div);
+  });
+
+  document.getElementById("hostPage").style.display="none";
+  document.getElementById("resultPage").style.display="block";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function toggleAll(){
+  const el=document.getElementById("full");
+  el.style.display=el.style.display==="block"?"none":"block";
+}
+
+function openSecret(data){
+  document.getElementById("hostPage").style.display="none";
+  document.getElementById("resultPage").style.display="none";
+  document.getElementById("secretPage").style.display="block";
+
+  document.getElementById("secretName").textContent=data.n;
+  const area=document.getElementById("secretResults");
+  area.innerHTML="";
+
+  data.items.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="resultBox";
+    div.innerHTML=`
+      <div class="label">${escapeHtml(item.label)}</div>
+      <div class="value">${escapeHtml(item.value)}</div>
+    `;
+    area.appendChild(div);
+  });
+}
+
+function checkLink(){
+  const hash=location.hash;
+  if(!hash.startsWith("#r=")) return;
+
+  const data=decodeResult(hash.slice(3));
+  if(!data || !data.n || !Array.isArray(data.items)){
+    alert("올바르지 않은 비밀 링크입니다.");
+    return;
+  }
+  openSecret(data);
+}
+
+function restart(){
+  location.href=location.href.split("#")[0];
+}
+
+document.getElementById("participants").addEventListener("input",updatePeopleCount);
+
+window.addEventListener("load",()=>{
+  if(location.hash.startsWith("#r=")){
+    checkLink();
+    return;
+  }
+
+  // 기본 1칸
+  addField("마니또","",true);
+});
+</script>
+</body>
+</html>
