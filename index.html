@@ -4,13 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- 📌 일반 검색 및 브라우저 탭 제목 -->
 <title>🔥 온가족 대잔치 🔥</title>
 
-<!-- 📌 카카오톡 및 SNS 링크 공유용 설정 (Open Graph) -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="🔥 온가족 대잔치 🔥">
-<meta property="og:description" content="결과를 확인해보세요 🌲">
+<meta property="og:description" content="좋은 사람과 함께하는 좋은 시간*^^*~❤️‍🔥">
 <meta property="og:image" content="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80">
 <meta property="og:locale" content="ko_KR">
 
@@ -26,7 +24,11 @@
   --card-bg: rgba(255, 255, 255, 0.95);
 }
 
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   margin: 0;
   background: #2D5A27 url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80') center/cover fixed no-repeat;
@@ -299,6 +301,7 @@ textarea:focus, input:focus {
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 /* 비밀 페이지 */
@@ -364,6 +367,13 @@ textarea:focus, input:focus {
   margin-top: 14px;
   text-decoration: underline;
 }
+
+/* 📱 모바일 화면 최적화 */
+@media (max-width: 480px) {
+  .main-title { font-size: 28px; }
+  .card { padding: 14px; }
+  .rainbow-heart { font-size: 15px; }
+}
 </style>
 </head>
 <body>
@@ -401,7 +411,7 @@ textarea:focus, input:focus {
   <div class="poster-top">
     <div class="poster-inner">
       <div class="rainbow-heart">🎉 추첨 결과 🎉</div>
-      <div class="main-title" style="font-size:30px;">개별 링크 발급 완료</div>
+      <div class="main-title" style="font-size:28px;">개별 링크 발급 완료</div>
       <p style="margin:4px 0 0; font-size:13px;">개별 링크를 복사해 주세요!</p>
     </div>
   </div>
@@ -489,15 +499,28 @@ function decodeResult(str){
   }
 }
 
-async function copyLink(link, name){
+async function copyLink(link, name, btnEl){
+  let copied = false;
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(link);
-      alert("복사 성공! ⛰️\n"+name+" 님에게 전달할 링크가 복사되었습니다!");
-      return;
+      copied = true;
     } catch(e) {}
   }
-  prompt("아래 링크를 복사해주세요!", link);
+  
+  if(!copied){
+    prompt("아래 링크를 복사해주세요!", link);
+    return;
+  }
+
+  // 버튼 인터랙션 개선
+  const originalText = btnEl.textContent;
+  btnEl.textContent = "완료! 👍";
+  btnEl.style.background = "#00B0FF";
+  setTimeout(() => {
+    btnEl.textContent = originalText;
+    btnEl.style.background = "var(--main-green)";
+  }, 1500);
 }
 
 function updatePeopleCount(){
@@ -681,7 +704,8 @@ function createGame(){
         </div>
       `;
 
-      div.querySelector(".copy").addEventListener("click",()=>copyLink(link,result.name));
+      const copyBtn = div.querySelector(".copy");
+      copyBtn.addEventListener("click",()=>copyLink(link,result.name,copyBtn));
       links.appendChild(div);
     });
 
