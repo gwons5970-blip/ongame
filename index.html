@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- 📌 기본 검색 및 브라우저 탭 제목 -->
 <title>🔥 온가족 대잔치 🔥</title>
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="🔥 온가족 대잔치 🔥">
-<meta property="og:description" content="좋은 사람과 함께하는 좋은 시간*^^*~❤️‍🔥">
-<meta property="og:image" content="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80">
+<!-- 📌 카카오톡 및 SNS 링크 공유용 기본 설정 (Open Graph) -->
+<meta property="og:type" content="website" id="ogType">
+<meta property="og:title" content="🔥 온가족 대잔치 🔥" id="ogTitle">
+<meta property="og:description" content="좋은 사람과 함께하는 좋은 시간*^^*~❤️‍🔥" id="ogDesc">
+<meta property="og:image" content="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=80" id="ogImage">
 <meta property="og:locale" content="ko_KR">
 
 <style>
@@ -136,7 +138,7 @@ textarea:focus, input:focus {
   border-color: var(--main-green);
 }
 
-/* 메인 버튼 */
+/* 메인 및 서브 버튼 */
 .main {
   width: 100%;
   border: 3px solid #000;
@@ -168,6 +170,20 @@ textarea:focus, input:focus {
   margin-top: 10px;
   box-shadow: 3px 3px 0px #000;
 }
+
+.action-btn {
+  width: 100%;
+  border: 2.5px solid #000;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 14px;
+  box-shadow: 3px 3px 0px #000;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-share-link { background: #FFF9C4; color: #000; }
 
 .addBtn {
   width: 100%;
@@ -379,6 +395,7 @@ textarea:focus, input:focus {
 <body>
 <div class="app"><div class="container">
 
+<!-- 1. 생성/설정 페이지 -->
 <section id="hostPage">
   <div class="poster-top">
     <div class="poster-inner">
@@ -407,12 +424,12 @@ textarea:focus, input:focus {
   </div>
 </section>
 
+<!-- 2. 주최자/전체 결과 페이지 -->
 <section id="resultPage">
   <div class="poster-top">
     <div class="poster-inner">
-      <div class="rainbow-heart">🎉 추첨 결과 🎉</div>
-      <div class="main-title" style="font-size:28px;">개별 링크 발급 완료</div>
-      <p style="margin:4px 0 0; font-size:13px;">개별 링크를 복사해 주세요!</p>
+      <div class="main-title" style="font-size:28px;">🎉 추첨 결과 🎉</div>
+      <p style="margin:4px 0 0; font-size:13px;">개별 링크를 복사하거나 전체 결과를 확인하세요!</p>
     </div>
   </div>
 
@@ -420,15 +437,18 @@ textarea:focus, input:focus {
     <div id="links"></div>
 
     <div class="notice">
-      🤫 <b>[보안 주의]</b><br>
-      개별 링크를 카톡으로 전달해 주세요! 🌲
+      복사 버튼을 눌러 각 참석자에게 보내주세요! 🌲
     </div>
 
-    <button class="sub" onclick="toggleAll()">🚩 전체 추첨 결과 보기</button>
+    <!-- 🔗 전체 결과 링크 복사 버튼 -->
+    <button class="action-btn btn-share-link" id="btnCopyAllLink" onclick="copyAllShareLink(this)">🔗 전체 결과 공유</button>
+
+    <button class="sub" onclick="toggleAll()">🚩 전체 추첨 결과</button>
+    
     <div id="full" class="full">
       <hr style="border:1px solid #000; margin:12px 0;">
       <h3 style="margin-bottom:8px; color:#0A369D">전체 명단 결과</h3>
-      <div id="allResults"></div>
+      <div id="allResults" style="margin-top:12px;"></div>
     </div>
 
     <div style="text-align:center;">
@@ -437,6 +457,7 @@ textarea:focus, input:focus {
   </div>
 </section>
 
+<!-- 3. 개인 비밀 페이지 -->
 <section id="secretPage">
   <div class="poster-top">
     <div class="poster-inner">
@@ -450,8 +471,7 @@ textarea:focus, input:focus {
     <div id="secretResults"></div>
 
     <div class="notice" style="text-align:left">
-      🔥 <b>[행동 수칙]</b><br>
-      비밀로 유지해 주세요!
+      🔥결과는 비밀로 유지해 주세요!🔥
     </div>
   </div>
 </section>
@@ -459,7 +479,15 @@ textarea:focus, input:focus {
 </div></div>
 
 <script>
-let fieldCounter=0;
+let fieldCounter = 0;
+let currentResults = null;
+
+// 공유 메타 정보(OG) 및 문서 제목 변경 함수
+function setShareMeta(titleText) {
+  document.title = titleText;
+  const ogTitle = document.getElementById("ogTitle");
+  if(ogTitle) ogTitle.setAttribute("content", titleText);
+}
 
 function shuffle(a){
   for(let i=a.length-1;i>0;i--){
@@ -499,28 +527,38 @@ function decodeResult(str){
   }
 }
 
-async function copyLink(link, name, btnEl){
+// 텍스트 클립보드 안전 복사
+async function copyToClipboard(text, btnEl, successMsg) {
   let copied = false;
   if (navigator.clipboard && window.isSecureContext) {
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(text);
       copied = true;
     } catch(e) {}
   }
   
   if(!copied){
-    prompt("아래 링크를 복사해주세요!", link);
+    prompt("아래 내용을 복사해주세요!", text);
     return;
   }
 
-  // 버튼 인터랙션 개선
-  const originalText = btnEl.textContent;
-  btnEl.textContent = "완료! 👍";
-  btnEl.style.background = "#00B0FF";
-  setTimeout(() => {
-    btnEl.textContent = originalText;
-    btnEl.style.background = "var(--main-green)";
-  }, 1500);
+  if(btnEl) {
+    const originalText = btnEl.textContent;
+    const originalBg = btnEl.style.background;
+    const originalColor = btnEl.style.color;
+
+    btnEl.textContent = successMsg || "복사 완료! 👍";
+    btnEl.style.background = "#00B0FF";
+    btnEl.style.color = "#FFF";
+
+    setTimeout(() => {
+      btnEl.textContent = originalText;
+      btnEl.style.background = originalBg;
+      btnEl.style.color = originalColor;
+    }, 1500);
+  } else {
+    alert("복사되었습니다!");
+  }
 }
 
 function updatePeopleCount(){
@@ -674,7 +712,7 @@ function createGame(){
       return values;
     });
 
-    const results=people.map((name,i)=>({
+    currentResults = people.map((name,i)=>({
       name,
       items:fields.map((field,fIndex)=>({
         label:field.name,
@@ -682,52 +720,75 @@ function createGame(){
       }))
     }));
 
-    const gameId=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
-    localStorage.setItem("random-secret-host-"+gameId,JSON.stringify(results));
+    renderResultsPage(currentResults);
 
-    const links=document.getElementById("links");
-    links.innerHTML="";
-
-    results.forEach(result=>{
-      const personal={n:result.name,items:result.items};
-      const encoded=encodeResult(personal);
-      const base=location.href.split("#")[0];
-      const link=base+"#r="+encoded;
-
-      const div=document.createElement("div");
-      div.className="person";
-      div.innerHTML=`
-        <div class="personName">🚩 ${escapeHtml(result.name)} 님</div>
-        <div class="linkRow">
-          <input class="linkInput" value="${escapeHtml(link)}" readonly>
-          <button class="copy">복사</button>
-        </div>
-      `;
-
-      const copyBtn = div.querySelector(".copy");
-      copyBtn.addEventListener("click",()=>copyLink(link,result.name,copyBtn));
-      links.appendChild(div);
-    });
-
-    const all=document.getElementById("allResults");
-    all.innerHTML="";
-
-    results.forEach(r=>{
-      const div=document.createElement("div");
-      div.className="fullItem";
-      const lines=r.items.map(item=>
-        `<div class="fullLine">🌲 <b>${escapeHtml(item.label)}</b>: ${escapeHtml(item.value)}</div>`
-      ).join("");
-      div.innerHTML=`<strong>🚩 ${escapeHtml(r.name)} 님</strong>${lines}`;
-      all.appendChild(div);
-    });
-
-    document.getElementById("hostPage").style.display="none";
-    document.getElementById("resultPage").style.display="block";
-    window.scrollTo({top:0,behavior:"smooth"});
   } catch(e) {
     // 매칭 실패 예외 처리
   }
+}
+
+// 결과 화면 출력 로직
+function renderResultsPage(results) {
+  currentResults = results;
+  
+  // 전체 결과 공유 시 카카오톡 링크 제목 설정
+  setShareMeta("🔥 온가족 대잔치 결과 🔥");
+
+  const links = document.getElementById("links");
+  links.innerHTML = "";
+
+  results.forEach(result => {
+    const personal = { n: result.name, items: result.items };
+    const encoded = encodeResult(personal);
+    const base = location.href.split("#")[0];
+    const link = base + "#r=" + encoded;
+
+    const div = document.createElement("div");
+    div.className = "person";
+    div.innerHTML = `
+      <div class="personName">🚩 ${escapeHtml(result.name)} 님</div>
+      <div class="linkRow">
+        <input class="linkInput" value="${escapeHtml(link)}" readonly>
+        <button class="copy">복사</button>
+      </div>
+    `;
+
+    const copyBtn = div.querySelector(".copy");
+    copyBtn.addEventListener("click", () => copyToClipboard(link, copyBtn, "복사 완료! 👍"));
+    links.appendChild(div);
+  });
+
+  const all = document.getElementById("allResults");
+  all.innerHTML = "";
+
+  results.forEach(r => {
+    const div = document.createElement("div");
+    div.className = "fullItem";
+    const lines = r.items.map(item =>
+      `<div class="fullLine">🌲 <b>${escapeHtml(item.label)}</b>: ${escapeHtml(item.value)}</div>`
+    ).join("");
+    div.innerHTML = `<strong>🚩 ${escapeHtml(r.name)} 님</strong>${lines}`;
+    all.appendChild(div);
+  });
+
+  document.getElementById("hostPage").style.display = "none";
+  document.getElementById("secretPage").style.display = "none";
+  document.getElementById("resultPage").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// 전체 결과 링크 복사
+function copyAllShareLink(btnEl) {
+  if (!currentResults) return;
+  
+  // 카카오톡에 공유될 때 미리보기 제목 설정
+  setShareMeta("🔥 온가족 대잔치 결과 🔥");
+
+  const encoded = encodeResult(currentResults);
+  const base = location.href.split("#")[0];
+  const shareLink = base + "#all=" + encoded;
+
+  copyToClipboard(shareLink, btnEl, "전체 링크 복사 완료! 🔗");
 }
 
 function toggleAll(){
@@ -736,6 +797,10 @@ function toggleAll(){
 }
 
 function openSecret(data){
+  // 개인 링크 카카오톡 공유 미리보기 제목: 🔥 000님 결과 🔥
+  const personalTitle = `🔥 ${data.n}님 결과 🔥`;
+  setShareMeta(personalTitle);
+
   document.getElementById("hostPage").style.display="none";
   document.getElementById("resultPage").style.display="none";
   document.getElementById("secretPage").style.display="block";
@@ -757,24 +822,39 @@ function openSecret(data){
 
 function checkLink(){
   const hash=location.hash;
-  if(!hash.startsWith("#r=")) return;
-
-  const data=decodeResult(hash.slice(3));
-  if(!data || !data.n || !Array.isArray(data.items)){
-    alert("올바르지 않은 링크입니다!");
+  
+  // 1. 개인 비밀 링크 접속 (#r=...)
+  if(hash.startsWith("#r=")){
+    const data=decodeResult(hash.slice(3));
+    if(!data || !data.n || !Array.isArray(data.items)){
+      alert("올바르지 않은 개인 링크입니다!");
+      return;
+    }
+    openSecret(data);
     return;
   }
-  openSecret(data);
+
+  // 2. 전체 결과 링크 접속 (#all=...)
+  if(hash.startsWith("#all=")){
+    const results=decodeResult(hash.slice(5));
+    if(!results || !Array.isArray(results)){
+      alert("올바르지 않은 전체 결과 링크입니다!");
+      return;
+    }
+    renderResultsPage(results);
+    return;
+  }
 }
 
 function restart(){
-  location.href=location.href.split("#")[0];
+  window.location.href = location.href.split("#")[0];
+  window.location.reload();
 }
 
 document.getElementById("participants").addEventListener("input",updatePeopleCount);
 
 window.addEventListener("load",()=>{
-  if(location.hash.startsWith("#r=")){
+  if(location.hash){
     checkLink();
     return;
   }
